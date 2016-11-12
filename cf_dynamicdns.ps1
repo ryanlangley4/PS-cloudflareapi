@@ -85,6 +85,29 @@ $uri_base = "https://api.cloudflare.com/client/v4/zones/" + $id
 	}
 }
 
+function get-cfzoneid() {
+Param(
+	[string] $DNSname
+)
+$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+$headers.Add("Content-Type", "application/json")
+$headers.Add("X-Auth-Key", "$api_key")
+$headers.Add("X-Auth-Email", "$email")
+
+	if($result = invoke-restmethod -Uri "https://api.cloudflare.com/client/v4/zones/" -Method GET  -headers $headers | select result) {
+		if($DNSname.count -ge 1) {
+			$dns_tmp = $DNSname.split(".")
+			$zone = $dns_Tmp[$dns_tmp.count-2] + "." + $dns_Tmp[$dns_tmp.count-1]
+		}
+		
+		if ($id = $result.result | where { $_.name -match $zone} | select -expandproperty id) {
+			return $id
+		} else {
+			return $false
+		}
+	}
+}
+
 $current_ip = Get-externalIp
 if($current_ip) {
 	foreach($domain in $domain_list) {
